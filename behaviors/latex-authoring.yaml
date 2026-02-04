@@ -1,0 +1,22 @@
+---
+behavior:
+  name: latex-authoring
+  description: "LaTeX authoring, compilation, and conference formatting capabilities"
+
+agents:
+  include:
+    - scientificpaper:latex-expert
+    - scientificpaper:paper-architect
+
+context:
+  include:
+    - scientificpaper:context/latex-awareness.md
+---
+
+# LaTeX Authoring Behavior
+
+Adds comprehensive LaTeX authoring capabilities for scientific papers.
+
+This behavior composes two specialized agents:
+- **latex-expert** - Compilation, formatting, debugging
+- **paper-architect** - Structure and outline planning

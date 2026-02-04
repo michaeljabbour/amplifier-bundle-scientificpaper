@@ -1,0 +1,19 @@
+---
+behavior:
+  name: figure-generation
+  description: "AI-assisted scientific figure creation with quality veto rules"
+
+agents:
+  include:
+    - scientificpaper:figure-artist
+
+context:
+  include:
+    - scientificpaper:context/figure-generation-awareness.md
+---
+
+# Figure Generation Behavior
+
+Adds AI-assisted scientific figure creation capabilities.
+
+This behavior composes the **figure-artist** agent for publication-ready visualizations.

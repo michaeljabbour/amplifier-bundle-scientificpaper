@@ -1,0 +1,15 @@
+---
+behavior:
+  name: conference-styling
+  description: "Multi-conference format support and conversion"
+
+context:
+  include:
+    - scientificpaper:context/conference-styling-awareness.md
+---
+
+# Conference Styling Behavior
+
+Adds awareness of supported conference formats and conversion capabilities.
+
+Conference formatting is handled by the **latex-expert** agent (from latex-authoring behavior).
