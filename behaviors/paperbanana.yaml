@@ -1,0 +1,80 @@
+---
+bundle:
+  name: paperbanana
+  version: 1.0.0
+  description: "PaperBanana multi-agent figure generation with quality veto rules"
+
+tools:
+  - module: tool-paperbanana
+    source: scientificpaper:modules/tool-paperbanana
+    config:
+      default_max_iterations: 3
+      output_dir: "figures"
+      default_quality_rules:
+        - "no_low_quality_artifacts"
+        - "professional_colors"
+        - "no_black_backgrounds"
+        - "modern_style"
+        - "vector_preferred"
+        - "appropriate_aspect_ratio"
+        - "clear_labels"
+        - "data_integrity"
+
+agents:
+  include:
+    - scientificpaper:figure-artist
+
+context:
+  include:
+    - scientificpaper:context/paperbanana-methodology.md
+---
+
+# PaperBanana Behavior
+
+Adds PaperBanana multi-agent figure generation capabilities to the scientific paper bundle.
+
+Based on research from arXiv 2601.23265: "PaperBanana: Automating Academic Illustration for AI Scientists"
+
+## Key Features
+
+- **Automated iterative refinement** - Up to 3 refinement cycles with quality feedback
+- **Quality veto rules enforcement** - 8 publication-ready quality checks
+- **Publication-ready output** - PDF, TikZ, SVG formats
+- **Conference-specific styling** - Automatic adaptation to NeurIPS, ICML, ACL, IEEE, ACM
+- **Multi-agent orchestration** - Retriever → Planner → Visualizer → Critic workflow
+
+## Usage
+
+The figure-artist agent automatically uses tool-paperbanana when appropriate for complex figures requiring quality validation.
+
+**Direct tool usage:**
+```
+"Use tool-paperbanana to generate a methodology diagram"
+```
+
+**Intelligent delegation:**
+```
+"Create a figure for my transformer paper with automated refinement"
+```
+
+**Recipe workflow:**
+```
+amplifier run "execute recipes/paperbanana-figure.yaml with paper_content='...'"
+```
+
+## Quality Veto Rules
+
+8 red-line rules from PaperBanana research:
+
+1. **no_low_quality_artifacts** - No visible grid artifacts, blur, or distortion
+2. **professional_colors** - No neon colors, use ColorBrewer palettes
+3. **no_black_backgrounds** - Avoid unprofessional black backgrounds
+4. **modern_style** - Appropriate fonts (no Comic Sans), minimal clip-art
+5. **vector_preferred** - Use PDF/SVG over raster formats
+6. **appropriate_aspect_ratio** - Match conference column/page requirements
+7. **clear_labels** - All axes, legends, captions legible at print size
+8. **data_integrity** - Accurate data representation, no misleading visualizations
+
+## Integration
+
+This behavior is automatically loaded when the scientificpaper bundle includes it. The figure-artist agent gains PaperBanana capabilities for intelligent figure generation with quality guarantees.

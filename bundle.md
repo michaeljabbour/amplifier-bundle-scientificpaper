@@ -12,6 +12,7 @@ behaviors:
     - scientificpaper:behaviors/latex-authoring
     - scientificpaper:behaviors/figure-generation
     - scientificpaper:behaviors/conference-styling
+    - scientificpaper:behaviors/paperbanana
 ---
 
 # Scientific Paper Bundle
