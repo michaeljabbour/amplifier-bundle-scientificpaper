@@ -5,7 +5,7 @@ bundle:
   description: "AI-assisted scientific paper authoring with LaTeX, figure generation, and multi-conference formatting"
 
 includes:
-  - github:microsoft/amplifier-foundation/bundle.md
+  - bundle: git+https://github.com/microsoft/amplifier-foundation@main
 
 behaviors:
   include:
