@@ -1,6 +1,7 @@
 ---
-behavior:
+bundle:
   name: figure-generation
+  version: 1.0.0
   description: "AI-assisted scientific figure creation with quality veto rules"
 
 agents:

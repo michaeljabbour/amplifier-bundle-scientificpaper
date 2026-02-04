@@ -1,6 +1,7 @@
 ---
-behavior:
+bundle:
   name: conference-styling
+  version: 1.0.0
   description: "Multi-conference format support and conversion"
 
 context:

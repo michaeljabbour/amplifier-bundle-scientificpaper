@@ -1,6 +1,7 @@
 ---
-behavior:
+bundle:
   name: latex-authoring
+  version: 1.0.0
   description: "LaTeX authoring, compilation, and conference formatting capabilities"
 
 agents:
