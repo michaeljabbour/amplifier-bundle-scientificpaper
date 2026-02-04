@@ -16,6 +16,10 @@ behaviors:
 
 # Scientific Paper Bundle
 
+@scientificpaper:context/instructions.md
+
+---
+
 AI-assisted workflow for creating publication-ready scientific papers.
 
 ## Key Capabilities
