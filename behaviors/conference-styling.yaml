@@ -2,15 +2,8 @@
 bundle:
   name: conference-styling
   version: 1.0.0
-  description: "Multi-conference format support and conversion"
+  description: "Multi-conference format support and conversion. Provides awareness of supported conference formats through context files."
 
 context:
   include:
     - scientificpaper:context/conference-styling-awareness.md
----
-
-# Conference Styling Behavior
-
-Adds awareness of supported conference formats and conversion capabilities.
-
-Conference formatting is handled by the **latex-expert** agent (from latex-authoring behavior).

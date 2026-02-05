@@ -2,7 +2,7 @@
 bundle:
   name: latex-authoring
   version: 1.0.0
-  description: "LaTeX authoring, compilation, and conference formatting capabilities"
+  description: "LaTeX authoring, compilation, and conference formatting capabilities. Composes latex-expert and paper-architect agents for comprehensive LaTeX workflow support."
 
 agents:
   include:
@@ -12,12 +12,3 @@ agents:
 context:
   include:
     - scientificpaper:context/latex-awareness.md
----
-
-# LaTeX Authoring Behavior
-
-Adds comprehensive LaTeX authoring capabilities for scientific papers.
-
-This behavior composes two specialized agents:
-- **latex-expert** - Compilation, formatting, debugging
-- **paper-architect** - Structure and outline planning
