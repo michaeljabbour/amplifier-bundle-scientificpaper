@@ -4,6 +4,7 @@ version = "1.0.0"
 description = "PaperBanana multi-agent academic illustration generation tool"
 requires-python = ">=3.10"
 dependencies = [
+    "google-genai>=0.3.0",
     "matplotlib>=3.7.0",
     "tikzplotlib>=0.10.0",
     "scienceplots>=2.1.0",

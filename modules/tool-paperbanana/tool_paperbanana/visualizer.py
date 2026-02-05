@@ -1,318 +1,272 @@
 """
-Visualizer Agent: Generate figures from content and style plans.
+Visualizer Agent: Generate figures using Gemini/Imagen image generation.
 
 Implements the fourth stage of the PaperBanana multi-agent architecture.
+Uses Imagen 4 (Google's image generation model) for methodology diagrams.
 """
 
 import os
 from pathlib import Path
-from typing import Any
 
 from .utils import ContentPlan, Critique, Figure, StylePlan
 
 
 class Visualizer:
-    """Generate figures using matplotlib/tikz based on plans."""
+    """Generate figures using Gemini/Imagen image generation API."""
 
-    def __init__(self, output_dir: str = "figures"):
-        """Initialize visualizer with output directory."""
+    def __init__(self, output_dir: str = "figures", gemini_api_key: str | None = None):
+        """
+        Initialize visualizer with Gemini API.
+
+        Args:
+            output_dir: Directory for generated figures
+            gemini_api_key: Google API key (or set GOOGLE_API_KEY env var)
+        """
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True, parents=True)
 
+        # Get API key
+        api_key = gemini_api_key or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            raise RuntimeError(
+                "Google API key required. Set GOOGLE_API_KEY environment variable "
+                "or pass gemini_api_key parameter."
+            )
+
+        # Initialize Gemini client
+        try:
+            from google import genai
+
+            self.client = genai.Client(api_key=api_key)
+            self.genai = genai
+        except ImportError as e:
+            raise RuntimeError(
+                "google-genai package required. Install: pip install google-genai"
+            ) from e
+
     def generate(self, content_plan: ContentPlan, style_plan: StylePlan) -> Figure:
         """
-        Generate initial figure from plans.
+        Generate figure using Gemini/Imagen (REAL PaperBanana approach).
 
         Args:
-            content_plan: What to include in the figure
+            content_plan: What to include
             style_plan: Visual aesthetics
 
         Returns:
-            Figure object with path and metadata
+            Figure object with path
         """
-        # Import matplotlib here to avoid issues if not installed
-        try:
-            import matplotlib.pyplot as plt
-        except ImportError as e:
-            raise RuntimeError("matplotlib is required for figure generation") from e
+        from google.genai import types
 
-        # Create figure with specified dimensions
-        fig, ax = plt.subplots(figsize=(style_plan.width_inches, style_plan.height_inches), dpi=300)
+        # Build detailed prompt from plans
+        prompt = self._build_image_generation_prompt(content_plan, style_plan)
 
-        # Apply style
-        self._apply_style(fig, ax, style_plan)
-
-        # Generate based on layout
-        if style_plan.layout == "horizontal":
-            self._generate_horizontal_layout(ax, content_plan, style_plan)
-        elif style_plan.layout == "vertical":
-            self._generate_vertical_layout(ax, content_plan, style_plan)
-        else:
-            self._generate_grid_layout(ax, content_plan, style_plan)
-
-        # Add relationships (arrows)
-        self._add_relationships(ax, content_plan, style_plan)
-
-        # Save figure
-        output_path = self.output_dir / f"figure_{os.getpid()}.{style_plan.format}"
-        plt.tight_layout()
-        plt.savefig(
-            output_path,
-            format=style_plan.format,
-            bbox_inches="tight",
-            dpi=300 if style_plan.format == "png" else None,
+        # Generate with Imagen 4
+        response = self.client.models.generate_images(
+            model="imagen-4.0-generate-001",
+            prompt=prompt,
+            config=types.GenerateImagesConfig(
+                number_of_images=1,
+                aspect_ratio=self._calculate_aspect_ratio(style_plan),
+            ),
         )
-        plt.close()
+
+        if not response.generated_images:
+            raise RuntimeError("No images generated")
+
+        # Extract and save image
+        generated = response.generated_images[0]
+        output_path = self.output_dir / f"figure_{os.getpid()}.png"
+
+        # Extract image bytes correctly
+        if not generated.image:
+            raise RuntimeError("No image object in generated response")
+
+        img_dict = generated.image.model_dump()
+        if "image_bytes" not in img_dict or not img_dict["image_bytes"]:
+            raise RuntimeError("No image_bytes in response")
+
+        # Write image
+        with output_path.open("wb") as f:
+            f.write(img_dict["image_bytes"])
 
         return Figure(
             path=str(output_path),
-            format=style_plan.format,
+            format="png",
             width_inches=style_plan.width_inches,
             height_inches=style_plan.height_inches,
             metadata={
+                "model": "imagen-4.0-generate-001",
+                "prompt_length": len(prompt),
                 "num_elements": len(content_plan.elements),
-                "num_relationships": len(content_plan.relationships),
                 "layout": style_plan.layout,
+                "generation_method": "gemini_image_generation",
             },
         )
 
     def refine(self, figure: Figure, critique: Critique) -> Figure:
         """
-        Refine figure based on critique.
+        Refine figure based on critique (iterative PaperBanana loop).
 
         Args:
             figure: Current figure
-            critique: Quality validation results
+            critique: Quality validation
 
         Returns:
-            Refined Figure object
+            Refined figure
         """
-        # For now, this is a simplified refinement
-        # In a full implementation, this would parse the critique
-        # and make specific adjustments based on failed rules
+        if critique.passed:
+            return figure
 
-        # Generate a new figure with adjustments
-        # This is a placeholder - full implementation would be more sophisticated
+        from google.genai import types
 
-        return figure  # Return same figure for now
+        # Build refinement prompt
+        refinement_prompt = self._build_refinement_prompt(figure, critique)
 
-    def _apply_style(self, fig: Any, ax: Any, style_plan: StylePlan) -> None:
-        """Apply style settings to figure."""
-        # Set font
-        import matplotlib.pyplot as plt
-
-        plt.rcParams["font.family"] = style_plan.font_family
-        plt.rcParams["font.size"] = style_plan.font_size
-
-        # Remove axes for diagram-style figures
-        ax.set_xlim(0, 10)
-        ax.set_ylim(0, 10)
-        ax.axis("off")
-
-    def _generate_horizontal_layout(
-        self, ax: Any, content_plan: ContentPlan, style_plan: StylePlan
-    ) -> None:
-        """Generate horizontal pipeline layout."""
-        import matplotlib.patches as mpatches
-
-        elements = content_plan.elements
-        num_elements = len(elements)
-
-        if num_elements == 0:
-            return
-
-        # Calculate spacing
-        spacing = 8.0 / num_elements
-        x_positions = {}
-
-        # Draw boxes
-        for i, element in enumerate(elements):
-            x = 1.0 + i * spacing
-            y = 5.0
-            x_positions[element] = (x, y)
-
-            # Determine color based on hierarchy
-            priority = content_plan.hierarchy.get(element, 2)
-            color_idx = min(i, len(style_plan.color_scheme) - 1)
-            color = style_plan.color_scheme[color_idx]
-
-            # Draw box
-            box = mpatches.FancyBboxPatch(
-                (x - 0.4, y - 0.5),
-                0.8,
-                1.0,
-                boxstyle="round,pad=0.1",
-                facecolor=color,
-                edgecolor="black",
-                linewidth=2 if priority == 1 else 1,
-                alpha=0.7,
+        try:
+            response = self.client.models.generate_images(
+                model="imagen-4.0-generate-001",
+                prompt=refinement_prompt,
+                config=types.GenerateImagesConfig(number_of_images=1),
             )
-            ax.add_patch(box)
 
-            # Add label
+            if not response.generated_images:
+                return figure
+
+            # Extract and save refined image
+            generated = response.generated_images[0]
+            if not generated.image:
+                return figure
+
+            img_dict = generated.image.model_dump()
+
+            if "image_bytes" in img_dict and img_dict["image_bytes"]:
+                output_path = Path(figure.path)
+                with output_path.open("wb") as f:
+                    f.write(img_dict["image_bytes"])
+
+                # Update metadata
+                figure.metadata["refined"] = True
+                figure.metadata["refinement_iteration"] = (
+                    figure.metadata.get("refinement_iteration", 0) + 1
+                )
+
+            return figure
+
+        except Exception:
+            return figure  # Keep original if refinement fails
+
+    def _build_image_generation_prompt(
+        self, content_plan: ContentPlan, style_plan: StylePlan
+    ) -> str:
+        """
+        Build detailed textual specification for Gemini image generation.
+
+        This implements PaperBanana's Planner → Stylist → Visualizer flow.
+        """
+        prompt_parts = [
+            f"Generate a professional academic {style_plan.layout} diagram "
+            "for a NeurIPS research paper.",
+            "",
+            "DIAGRAM STRUCTURE:",
+        ]
+
+        # Elements with hierarchy
+        for i, element in enumerate(content_plan.elements, 1):
             label = content_plan.labels.get(element, element)
-            # Truncate if too long
-            if len(label) > 20:
-                label = label[:17] + "..."
-
-            ax.text(
-                x,
-                y,
-                label,
-                ha="center",
-                va="center",
-                fontsize=style_plan.font_size,
-                fontweight="bold" if priority == 1 else "normal",
-                wrap=True,
-            )
-
-        # Store for relationship drawing
-        self._element_positions = x_positions
-
-    def _generate_vertical_layout(
-        self, ax: Any, content_plan: ContentPlan, style_plan: StylePlan
-    ) -> None:
-        """Generate vertical architecture layout."""
-        import matplotlib.patches as mpatches
-
-        elements = content_plan.elements
-        num_elements = len(elements)
-
-        if num_elements == 0:
-            return
-
-        # Calculate spacing
-        spacing = 8.0 / num_elements
-        x_positions = {}
-
-        # Draw boxes
-        for i, element in enumerate(elements):
-            x = 5.0
-            y = 9.0 - i * spacing
-            x_positions[element] = (x, y)
-
-            # Determine color
-            color_idx = min(i, len(style_plan.color_scheme) - 1)
-            color = style_plan.color_scheme[color_idx]
             priority = content_plan.hierarchy.get(element, 2)
+            if priority == 1:
+                emphasis = "PRIMARY (larger, emphasized)"
+            else:
+                emphasis = "secondary"
+            prompt_parts.append(f"{i}. '{label}' [{emphasis}]")
 
-            # Draw box
-            box = mpatches.FancyBboxPatch(
-                (x - 1.5, y - 0.4),
-                3.0,
-                0.8,
-                boxstyle="round,pad=0.1",
-                facecolor=color,
-                edgecolor="black",
-                linewidth=2 if priority == 1 else 1,
-                alpha=0.7,
-            )
-            ax.add_patch(box)
+        # Relationships
+        if content_plan.relationships:
+            prompt_parts.append("")
+            prompt_parts.append("CONNECTIONS:")
+            for source, target in content_plan.relationships:
+                prompt_parts.append(f"  → {source} connects to {target} with curved arrow")
 
-            # Add label
-            label = content_plan.labels.get(element, element)
-            if len(label) > 30:
-                label = label[:27] + "..."
+        # Visual style (PaperBanana aesthetic guidelines)
+        prompt_parts.extend(
+            [
+                "",
+                "VISUAL STYLE:",
+                f"- Layout arrangement: {style_plan.layout} (layered if methodology)",
+                "- Shape: Rounded rectangles with soft shadows",
+                "- Colors: Professional academic palette:",
+                "  * Core/foundational elements: soft blue (#E8F4F8 fill, #2C5F7B border)",
+                "  * Process/dynamic elements: soft yellow (#FFF9C4 fill, #F57F17 border)",
+                "  * Emergent/advanced elements: soft pink (#F8BBD0 fill, #C2185B border)",
+                "- Arrows: Smooth curved arrows, medium gray color",
+                "- Typography: Serif font (Times-like), clear and legible",
+                f"- Font size: {style_plan.font_size}pt minimum",
+                "- Background: Clean white",
+                "- Spacing: Generous white space, not crowded",
+                "",
+                "QUALITY REQUIREMENTS:",
+                "- Modern academic aesthetics (NeurIPS 2025 style)",
+                "- Publication-ready professional appearance",
+                "- Clear visual hierarchy and grouping",
+                "- Colorblind-safe palette",
+                "- High resolution for print quality",
+                "- Clean, sophisticated design",
+                "",
+                "AVOID:",
+                "- PowerPoint clipart or generic shapes",
+                "- Neon or overly bright colors",
+                "- Black backgrounds",
+                "- Cluttered or busy layouts",
+                "- Comic Sans or informal typography",
+                "- Low-quality artifacts or pixelation",
+            ]
+        )
 
-            ax.text(
-                x,
-                y,
-                label,
-                ha="center",
-                va="center",
-                fontsize=style_plan.font_size,
-                fontweight="bold" if priority == 1 else "normal",
-            )
+        return "\n".join(prompt_parts)
 
-        self._element_positions = x_positions
+    def _build_refinement_prompt(self, figure: Figure, critique: Critique) -> str:
+        """Build refinement prompt with critic feedback."""
+        prompt_parts = [
+            "REFINE the academic diagram to address quality issues while maintaining structure.",
+            "",
+            "CRITIQUE SUMMARY:",
+            critique.summary,
+            "",
+            "ISSUES TO FIX:",
+        ]
 
-    def _generate_grid_layout(
-        self, ax: Any, content_plan: ContentPlan, style_plan: StylePlan
-    ) -> None:
-        """Generate grid network layout."""
-        import math
+        for issue in critique.issues:
+            rule = issue.get("rule", "unknown")
+            desc = issue.get("description", "")
+            severity = issue.get("severity", "minor")
+            prompt_parts.append(f"  [{severity.upper()}] {rule}: {desc}")
 
-        import matplotlib.patches as mpatches
+        prompt_parts.extend(
+            [
+                "",
+                "REFINEMENT GOALS:",
+                "- Fix all identified issues",
+                "- Maintain overall content and structure",
+                "- Improve professional quality",
+                "- Ensure publication-ready appearance",
+                "",
+                "Generate an improved version with these fixes applied.",
+            ]
+        )
 
-        elements = content_plan.elements
-        num_elements = len(elements)
+        return "\n".join(prompt_parts)
 
-        if num_elements == 0:
-            return
+    def _calculate_aspect_ratio(self, style_plan: StylePlan) -> str:
+        """Map dimensions to Gemini aspect ratio."""
+        ratio = style_plan.width_inches / style_plan.height_inches
 
-        # Calculate grid dimensions
-        cols = math.ceil(math.sqrt(num_elements))
-        rows = math.ceil(num_elements / cols)
-
-        x_spacing = 8.0 / cols
-        y_spacing = 8.0 / rows
-
-        x_positions = {}
-
-        # Draw nodes in grid
-        for i, element in enumerate(elements):
-            row = i // cols
-            col = i % cols
-
-            x = 1.0 + col * x_spacing + x_spacing / 2
-            y = 9.0 - row * y_spacing - y_spacing / 2
-            x_positions[element] = (x, y)
-
-            # Determine color
-            color_idx = min(i, len(style_plan.color_scheme) - 1)
-            color = style_plan.color_scheme[color_idx]
-            priority = content_plan.hierarchy.get(element, 2)
-
-            # Draw circle
-            circle = mpatches.Circle(
-                (x, y),
-                0.4,
-                facecolor=color,
-                edgecolor="black",
-                linewidth=2 if priority == 1 else 1,
-                alpha=0.7,
-            )
-            ax.add_patch(circle)
-
-            # Add label
-            label = content_plan.labels.get(element, element)
-            if len(label) > 15:
-                label = label[:12] + "..."
-
-            ax.text(
-                x,
-                y,
-                label,
-                ha="center",
-                va="center",
-                fontsize=style_plan.font_size - 1,
-                fontweight="bold" if priority == 1 else "normal",
-            )
-
-        self._element_positions = x_positions
-
-    def _add_relationships(self, ax: Any, content_plan: ContentPlan, style_plan: StylePlan) -> None:
-        """Add arrows for relationships between elements."""
-        if not hasattr(self, "_element_positions"):
-            return
-
-        import matplotlib.patches as mpatches
-
-        for source, target in content_plan.relationships:
-            if source not in self._element_positions or target not in self._element_positions:
-                continue
-
-            x1, y1 = self._element_positions[source]
-            x2, y2 = self._element_positions[target]
-
-            # Draw arrow
-            arrow = mpatches.FancyArrowPatch(
-                (x1, y1),
-                (x2, y2),
-                arrowstyle="->",
-                mutation_scale=20,
-                linewidth=1.5,
-                color="gray",
-                alpha=0.6,
-            )
-            ax.add_patch(arrow)
+        if ratio > 1.5:
+            return "16:9"
+        elif ratio > 1.2:
+            return "3:2"
+        elif ratio < 0.7:
+            return "2:3"
+        elif ratio < 0.8:
+            return "9:16"
+        else:
+            return "1:1"
