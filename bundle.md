@@ -6,13 +6,10 @@ bundle:
 
 includes:
   - bundle: foundation
-
-behaviors:
-  include:
-    - scientificpaper:behaviors/latex-authoring
-    - scientificpaper:behaviors/figure-generation
-    - scientificpaper:behaviors/conference-styling
-    - scientificpaper:behaviors/paperbanana
+  - bundle: scientificpaper:behaviors/latex-authoring
+  - bundle: scientificpaper:behaviors/figure-generation
+  - bundle: scientificpaper:behaviors/conference-styling
+  - bundle: scientificpaper:behaviors/paperbanana
 ---
 
 # Scientific Paper Bundle
