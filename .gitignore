@@ -100,6 +100,17 @@ Temporary Items
 *.bak
 *.backup
 
-# Research and draft files (optional - comment out if you want to keep these)
-# research/
-# sessions/
+# Test outputs and generated figures (from demos/testing)
+figures/
+outputs/
+test-outputs/
+
+# Development status files (not for end users)
+*_STATUS.md
+*_COMPLETE.md
+*_SUMMARY.md
+*_DELIVERY.md
+IMPLEMENTATION_PLAN*.md
+
+# Sessions (user-specific)
+sessions/
