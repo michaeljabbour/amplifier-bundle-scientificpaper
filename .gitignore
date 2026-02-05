@@ -94,6 +94,14 @@ Temporary Items
 # Ruff cache
 .ruff_cache/
 
+# Test outputs and generated figures
+figures/
+sessions/
+
+# Development status files
+*_COMPLETE.md
+*_STATUS.md
+
 # Temporary files
 *.tmp
 *.temp
