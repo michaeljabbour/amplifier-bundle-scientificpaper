@@ -1,12 +1,16 @@
 ---
-meta:
+bundle:
   name: figure-generation
-  description: Scientific figure and diagram creation capabilities
+  version: 1.0.0
+  description: "AI-assisted scientific figure creation with quality veto rules. Composes figure-artist agent for publication-ready visualizations."
+
 agents:
-  - agents/figure-artist.md
+  include:
+    - scientificpaper:figure-artist
+
 context:
-  - context/imaging/matplotlib-scientific.md
-  - context/imaging/tikz-patterns.md
+  include:
+    - scientificpaper:context/figure-generation-awareness.md
 ---
 
 # Figure Generation Behavior
@@ -29,4 +33,4 @@ Enables creation of publication-quality scientific figures.
 | Complex | Gemini API | - |
 
 ## Agent Delegation
-All figure requests → @figure-artist
+All figure requests -> @figure-artist

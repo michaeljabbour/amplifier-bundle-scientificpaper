@@ -27,3 +27,11 @@ agents:
 context:
   include:
     - scientificpaper:context/paperbanana-methodology.md
+---
+
+# PaperBanana Behavior
+
+Multi-agent figure generation with quality veto rules based on arXiv 2601.23265 research. Provides automated iterative refinement with 8 publication-ready quality checks.
+
+## Agent Delegation
+All PaperBanana figure requests -> @figure-artist

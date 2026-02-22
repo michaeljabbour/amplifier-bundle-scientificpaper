@@ -1,13 +1,17 @@
 ---
-meta:
+bundle:
   name: latex-authoring
-  description: LaTeX document creation and compilation capabilities
+  version: 1.0.0
+  description: "LaTeX authoring, compilation, and conference formatting capabilities. Composes latex-expert and paper-architect agents for comprehensive LaTeX workflow support."
+
 agents:
-  - agents/latex-expert.md
-  - agents/paper-architect.md
-tools:
-  - tool-bash
-  - tool-filesystem
+  include:
+    - scientificpaper:latex-expert
+    - scientificpaper:paper-architect
+
+context:
+  include:
+    - scientificpaper:context/latex-awareness.md
 ---
 
 # LaTeX Authoring Behavior
@@ -22,5 +26,5 @@ Enables creation and compilation of LaTeX scientific documents.
 - Bibliography integration
 
 ## Agent Delegation
-- Structure planning → @paper-architect
-- Compilation and formatting → @latex-expert
+- Structure planning -> @paper-architect
+- Compilation and formatting -> @latex-expert

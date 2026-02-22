@@ -1,17 +1,12 @@
 ---
-meta:
+bundle:
   name: conference-styling
-  description: Multi-conference formatting and style application
-agents:
-  - agents/latex-expert.md
-  - agents/citation-manager.md
+  version: 1.0.0
+  description: "Multi-conference format support and conversion. Provides awareness of supported conference formats through context files."
+
 context:
-  - context/conference-formats/neurips.md
-  - context/conference-formats/icml.md
-  - context/conference-formats/acl.md
-  - context/conference-formats/ieee.md
-  - context/conference-formats/acm.md
-  - context/conference-formats/arxiv.md
+  include:
+    - scientificpaper:context/conference-styling-awareness.md
 ---
 
 # Conference Styling Behavior
@@ -27,5 +22,5 @@ Applies correct formatting for major scientific conferences.
 - arXiv - TeX recommended
 
 ## Agent Delegation
-- Format application → @latex-expert
-- Citation styling → @citation-manager
+- Format application -> @latex-expert
+- Citation styling -> @citation-manager
