@@ -270,3 +270,12 @@ Research informed by:
 **Status:** Phase 1 Complete (Core Structure) ✅  
 **Ready for:** Testing and Phase 2 development  
 **Contact:** [Your contact information]
+
+## See also: amplifier-bundle-research
+
+This bundle is the focused paper-authoring slice — load it and you get exactly and only the capabilities for taking research results and turning them into a publication-ready PDF in a target venue's format.
+
+If you also want the broader research-lifecycle substrate (hypothesis sharpening, pre-registration with SHA256 hash-locking, statistical tooling for McNemar/TOST/Wilson/Holm-Bonferroni, peer-review feedback agents, the orchestrated H3 loop for self-evaluation studies, plus all the same paper-authoring capabilities), use [amplifier-bundle-research](https://github.com/michaeljabbour/amplifier-bundle-research) instead. It is a strict superset for any user beyond pure paper authoring.
+
+The two bundles share substantial infrastructure (Python scripts, conference formats, LaTeX templates, PaperBanana figure-generation module, paper-authoring behaviors) but differ in scope. amplifier-bundle-scientificpaper has its own legitimate use case: the clean, no-modes-required interface for "I just want to write a paper" without the discipline ceremony.
+
