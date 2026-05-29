@@ -155,7 +155,7 @@ Always enforce these 8 rules from PaperBanana research:
 
 ```python
 # Example tool invocation for complex diagrams
-paperbanana_result = await use_tool("paperbanana", {
+paperbanana_result = await use_tool("paperbanana_generate_figure", {
     "paper_content": """
         Abstract: We propose a novel attention mechanism...
         Methods: Our approach consists of three stages...
