@@ -13,18 +13,3 @@ context:
   include:
     - scientificpaper:context/latex-awareness.md
 ---
-
-# LaTeX Authoring Behavior
-
-Enables creation and compilation of LaTeX scientific documents.
-
-## Capabilities
-- Document structure creation
-- Section and subsection management
-- Table and figure environments
-- Mathematical typesetting
-- Bibliography integration
-
-## Agent Delegation
-- Structure planning -> @paper-architect
-- Compilation and formatting -> @latex-expert

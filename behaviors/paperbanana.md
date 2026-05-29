@@ -6,7 +6,7 @@ bundle:
 
 tools:
   - module: tool-paperbanana
-    source: scientificpaper:modules/tool-paperbanana
+    source: ./modules/tool-paperbanana
     config:
       default_max_iterations: 3
       output_dir: "figures"
@@ -19,19 +19,4 @@ tools:
         - "appropriate_aspect_ratio"
         - "clear_labels"
         - "data_integrity"
-
-agents:
-  include:
-    - scientificpaper:figure-artist
-
-context:
-  include:
-    - scientificpaper:context/paperbanana-methodology.md
 ---
-
-# PaperBanana Behavior
-
-Multi-agent figure generation with quality veto rules based on arXiv 2601.23265 research. Provides automated iterative refinement with 8 publication-ready quality checks.
-
-## Agent Delegation
-All PaperBanana figure requests -> @figure-artist

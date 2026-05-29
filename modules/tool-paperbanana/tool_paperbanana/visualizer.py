@@ -41,7 +41,7 @@ class Visualizer:
             self.genai = genai
         except ImportError as e:
             raise RuntimeError(
-                "google-genai package required. Install: pip install google-genai"
+                "google-genai package required. Install: pip install 'tool-paperbanana[gemini]'"
             ) from e
 
     def generate(self, content_plan: ContentPlan, style_plan: StylePlan) -> Figure:

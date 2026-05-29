@@ -4,7 +4,6 @@ version = "1.0.0"
 description = "PaperBanana multi-agent academic illustration generation tool"
 requires-python = ">=3.10"
 dependencies = [
-    "google-genai>=0.3.0",
     "matplotlib>=3.7.0",
     "tikzplotlib>=0.10.0",
     "scienceplots>=2.1.0",
@@ -21,6 +20,14 @@ dev = [
     "pyright>=1.1.0",
     "ruff>=0.1.0",
 ]
+gemini = ["google-genai>=0.3.0"]
+
+[project.entry-points."amplifier.modules"]
+tool-paperbanana = "tool_paperbanana:mount"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.pyright]
 typeCheckingMode = "standard"

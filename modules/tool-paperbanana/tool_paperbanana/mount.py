@@ -5,7 +5,10 @@ Orchestrates the 5-agent PaperBanana workflow:
 Retriever → Planner → Stylist → Visualizer → Critic
 """
 
+import json
 from typing import Any
+
+from amplifier_core import ToolResult  # type: ignore[import]
 
 from .critic import Critic
 from .planner import Planner
@@ -53,7 +56,58 @@ class PaperBananaToolMount:
         self.visualizer = Visualizer(output_dir=self.output_dir)
         self.critic = Critic()
 
-    async def execute(self, input_data: dict[str, Any]) -> dict[str, Any]:
+    @property
+    def name(self) -> str:
+        """Tool name for Amplifier registration."""
+        return "paperbanana"
+
+    @property
+    def description(self) -> str:
+        """Tool description shown to the LLM."""
+        return (
+            "Generate publication-quality academic figures using the PaperBanana "
+            "multi-agent pipeline (arXiv 2601.23265). Extracts key concepts from "
+            "paper text, plans content and style, generates figures via Gemini/Imagen, "
+            "and applies 8 quality veto rules with iterative refinement."
+        )
+
+    @property
+    def input_schema(self) -> dict[str, Any]:
+        """JSON schema for tool inputs."""
+        return {
+            "type": "object",
+            "properties": {
+                "paper_content": {
+                    "type": "string",
+                    "description": (
+                        "Paper text (abstract and methods section) to generate a figure for"
+                    ),
+                },
+                "figure_type": {
+                    "type": "string",
+                    "enum": ["methodology", "plot", "architecture"],
+                    "description": "Type of figure to generate",
+                },
+                "style_requirements": {
+                    "type": "object",
+                    "description": (
+                        "Visual style requirements (conference, colorblind_safe, width_inches)"
+                    ),
+                },
+                "quality_rules": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Quality veto rules to enforce (defaults to all 8 rules)",
+                },
+                "max_iterations": {
+                    "type": "integer",
+                    "description": "Maximum refinement iterations (default: 3)",
+                },
+            },
+            "required": ["paper_content"],
+        }
+
+    async def execute(self, input_data: dict[str, Any]) -> ToolResult:
         """
         Execute PaperBanana workflow to generate a figure.
 
@@ -66,7 +120,7 @@ class PaperBananaToolMount:
                 - max_iterations: int - Refinement attempts
 
         Returns:
-            Dict with:
+            ToolResult with JSON-serialized payload containing:
                 - success: bool
                 - figure_path: str (if success)
                 - format: str (if success)
@@ -77,10 +131,10 @@ class PaperBananaToolMount:
             # Extract and validate inputs
             paper_content = input_data.get("paper_content", "")
             if not paper_content:
-                return {
-                    "success": False,
-                    "error": "paper_content is required",
-                }
+                return ToolResult(
+                    success=False,
+                    output=json.dumps({"success": False, "error": "paper_content is required"}),
+                )
 
             style_requirements = input_data.get("style_requirements", {})
             quality_rules = input_data.get("quality_rules", self.default_quality_rules)
@@ -118,7 +172,7 @@ class PaperBananaToolMount:
 
             # Return results
             if critique:
-                return {
+                payload = {
                     "success": critique.passed,
                     "figure_path": figure.path,
                     "format": figure.format,
@@ -135,9 +189,10 @@ class PaperBananaToolMount:
                     },
                     "error": None if critique.passed else f"Quality issues: {critique.severity}",
                 }
+                return ToolResult(success=critique.passed, output=json.dumps(payload))
             else:
                 # No critique (shouldn't happen)
-                return {
+                payload = {
                     "success": True,
                     "figure_path": figure.path,
                     "format": figure.format,
@@ -147,30 +202,11 @@ class PaperBananaToolMount:
                         "height_inches": figure.height_inches,
                     },
                 }
+                return ToolResult(success=True, output=json.dumps(payload))
 
         except Exception as e:
-            return {
+            payload = {
                 "success": False,
                 "error": f"PaperBanana execution failed: {str(e)}",
             }
-
-    def execute_sync(self, input_data: dict[str, Any]) -> dict[str, Any]:
-        """
-        Synchronous version of execute (for compatibility).
-
-        Args:
-            input_data: Same as execute()
-
-        Returns:
-            Same as execute()
-        """
-        import asyncio
-
-        # Run async execute in sync context
-        try:
-            loop = asyncio.get_event_loop()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-
-        return loop.run_until_complete(self.execute(input_data))
+            return ToolResult(success=False, output=json.dumps(payload))

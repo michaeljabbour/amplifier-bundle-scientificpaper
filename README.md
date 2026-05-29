@@ -9,6 +9,7 @@ This Amplifier bundle provides specialized agents for scientific paper authoring
 - **paper-architect** - Structure planning and IMRaD methodology
 - **latex-expert** - LaTeX compilation and conference formatting
 - **figure-artist** - Publication-ready figure generation with quality veto rules
+- **citation-manager** - BibTeX management and citation-style conversion
 
 ## Features
 
@@ -52,16 +53,23 @@ pip install matplotlib seaborn tikzplotlib pypdf requests bibtexparser sciencepl
 ### Install Bundle
 
 ```bash
-# Use with Amplifier
-amplify --bundle github:yourusername/amplifier-bundle-scientificpaper
+# Add as an app bundle (auto-composed into every session)
+amplifier bundle add git+https://github.com/michaeljabbour/amplifier-bundle-scientificpaper@main --app
+```
+
+The optional Gemini figure backend installs separately:
+```bash
+pip install 'tool-paperbanana[gemini]'
 ```
 
 ## Quick Start
 
 ### Create a New Paper
 
+Once added (above), the bundle is composed into every session automatically. Just start Amplifier:
+
 ```bash
-amplify --bundle @scientificpaper
+amplifier run
 ```
 
 Then in the session:
@@ -164,23 +172,23 @@ Amplifier delegates to latex-expert:
 
 ```
 amplifier-bundle-scientificpaper/
-├── bundle.md                    # Root bundle (thin inheritance)
+├── bundle.md                    # Root bundle (thin router)
 ├── behaviors/                   # Capability modules
-│   ├── latex-authoring.yaml
-│   ├── figure-generation.yaml
-│   └── conference-styling.yaml
-├── agents/                      # Context sink specialists
+│   ├── latex-authoring.md
+│   ├── figure-generation.md
+│   ├── conference-styling.md
+│   └── paperbanana.md
+├── agents/                      # Context-sink specialists
 │   ├── paper-architect.md
 │   ├── latex-expert.md
-│   └── figure-artist.md
-├── context/                     # Heavy documentation
-│   ├── conference-formats/
-│   │   └── neurips.md          # (More to be added)
-│   └── imaging/
+│   ├── figure-artist.md
+│   └── citation-manager.md
+├── context/                     # Heavy documentation (loaded on demand)
+│   └── conference-formats/
+├── modules/                     # Inline tool module
+│   └── tool-paperbanana/        # PaperBanana figure generation
 ├── templates/                   # LaTeX templates
-│   └── neurips/                # Official NeurIPS style files
 └── scripts/                     # Utility scripts
-    └── (To be implemented)
 ```
 
 ## Philosophy
@@ -193,13 +201,15 @@ This bundle follows Amplifier's **"mechanism, not policy"** approach:
 - **Template-based** - Official conference style files
 - **Quality-first** - PaperBanana-inspired figure veto rules
 
-## Variants
+## Optional: Gemini Figure Backend
 
-Pre-composed bundle variants will be available:
+Photorealistic / conceptual figure generation via the PaperBanana pipeline is optional. Enable it with the extra:
 
-- **`bundles/with-gemini.md`** - Adds Gemini API for conceptual figures
-- **`bundles/latex-only.md`** - Pure LaTeX without figure generation
-- **`bundles/neurips-focused.md`** - Optimized for NeurIPS papers
+```bash
+pip install 'tool-paperbanana[gemini]'
+```
+
+Without it, figures are still generated via matplotlib, tikzplotlib, seaborn, TikZ/PGFPlots, and Mermaid.
 
 ## Research Basis
 
@@ -254,7 +264,7 @@ Contributions welcome! Areas of focus:
 
 ## License
 
-[To be determined - recommend MIT or Apache 2.0]
+MIT License. See [LICENSE](LICENSE).
 
 ## Acknowledgments
 
@@ -267,9 +277,7 @@ Research informed by:
 
 ---
 
-**Status:** Phase 1 Complete (Core Structure) ✅  
-**Ready for:** Testing and Phase 2 development  
-**Contact:** [Your contact information]
+Built on the [Amplifier](https://github.com/microsoft/amplifier) framework.
 
 ## See also: amplifier-bundle-research
 
